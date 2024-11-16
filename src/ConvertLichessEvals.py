@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 
-from automation import misc
+from Utilities_Python import misc
 
 CONFIG_FILE = os.path.join(Path(__file__).parents[1], 'config.json')
 
@@ -46,14 +46,22 @@ def main():
 
     proc_dir = misc.get_config('processingDir', CONFIG_FILE)
 
-    # get list of files
-    eval_files = []
+    # build list of files to extract
+    zst_files = []
     for f in os.listdir(proc_dir):
-        if fnmatch.fnmatch(f, 'lichess*.json'):
-            eval_files.append(f)
+        if fnmatch.fnmatch(f, '*.zst'):
+            zst_files.append(f)
 
-    for f in eval_files:
-        build_file(os.path.join(proc_dir, f))
+    # extract and process files
+    for f in zst_files:
+        new_file_name = f.replace('.zst', '')
+        cmd_text = f'zstd -d {f} -o {new_file_name}'
+        logging.debug(cmd_text)
+        if os.getcwd != proc_dir:
+            os.chdir(proc_dir)
+        os.system('cmd /C ' + cmd_text)
+
+        build_file(os.path.join(proc_dir, new_file_name))
 
 
 if __name__ == '__main__':
